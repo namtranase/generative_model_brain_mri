@@ -1,3 +1,3 @@
 .idea
 *.pyc
-data
+data/kaggle_mri_classification
