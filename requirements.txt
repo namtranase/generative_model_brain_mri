@@ -2,3 +2,8 @@ torch
 numpy
 sklearn
 keras
+plotly
+matplotlib
+opencv-python
+imutils
+tensorflow
