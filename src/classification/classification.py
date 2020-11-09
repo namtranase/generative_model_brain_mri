@@ -79,6 +79,12 @@ def load_data(dir_path, img_size=(100, 100)):
 
     return X, y, labels
 
+def plot_confusion_matrix(
+    cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
+    """Plot confusion matrix for images.
+    """
+    return None
+
 def main():
     # Train, test, val split
     status_split = split_train_test_val()
