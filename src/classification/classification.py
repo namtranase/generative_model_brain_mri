@@ -109,7 +109,7 @@ def plot_samples(X, y, lables_dict, n=50):
         plt.figure(figsize=(15, 6))
         c = 1
         for img in imgs:
-            plt.subplot(i, i, c)
+            plt.subplot(i, j, c)
             plt.imshow(img[0])
 
             plt.xticks([])
@@ -117,7 +117,7 @@ def plot_samples(X, y, lables_dict, n=50):
             c += 1
 
         plt.suptitle('Tumor: {}'.format(lables_dict[index]))
-        plt.savefig('plot_sample.png')
+        plt.savefig('src/classification/plot_sample.png')
         # plt.show()
 
 def main():
