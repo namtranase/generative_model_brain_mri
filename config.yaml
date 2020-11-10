@@ -11,4 +11,4 @@ classification:
     train_dir_crop: 'data/kaggle_mri_classification/train_crop/'
     test_dir_crop: 'data/kaggle_mri_classification/test_crop/'
     val_dir_crop: 'data/kaggle_mri_classification/val_crop/'
-    vgg16_weights: 'data/kaggle_mri_classification/vgg16_weights/2019-06-07_VGG_model.h5'
+    vgg16_weights: 'data/kaggle_mri_classification/vgg16_weights/vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5'

@@ -219,6 +219,8 @@ def train_vgg16_model(config, train_generator, val_generator, img_size):
     """Training preweight vgg16 model.
     """
     vgg16_weight_path = config['classification']['vgg16']['vgg16_weights']
+    print(vgg16_weight_path)
+
     base_model = VGG16(
         weights=vgg16_weight_path,
         include_top=False,
@@ -236,10 +238,25 @@ def train_vgg16_model(config, train_generator, val_generator, img_size):
 
     model.compile(
         loss = 'binary_crossentropy',
-        optimizer=RMSprop(lr=1e-4)
+        optimizer=RMSprop(lr=1e-4),
         metrics=['accuracy'])
-    
+
     model.summary()
+
+    epochs = 30
+    es = EarlyStopping(
+        moniter='val_acc',
+        mode='max',
+        patience=6)
+
+    history = model.fit_generator(
+        train_generator,
+        steps_per_epoch=50,
+        epochs=epochs,
+        validation_data=val_generator,
+        validation_steps=25,
+        callbacks=[es])
+
 def main():
     """Main program
     """
@@ -272,8 +289,7 @@ def main():
     X_train_crop = crop_imgs(set_name=X_train)
     X_test_crop = crop_imgs(set_name=X_test)
     X_val_crop = crop_imgs(set_name=X_val)
-
-    plot_samples(X_train_crop, y_train, labels, 30)
+    # plot_samples(X_train_crop, y_train, labels, 30)
 
     # Save croped images
     save_crop_images(
@@ -293,7 +309,7 @@ def main():
     X_train_prep = preprocess_imgs(X_train_crop, img_size)
     X_test_prep = preprocess_imgs(X_test_crop, img_size)
     X_val_prep = preprocess_imgs(X_val_crop, img_size)
-    plot_samples(X_train_prep, y_train, labels, 30)
+    # plot_samples(X_train_prep, y_train, labels, 30)
 
     # Augment data for training
     train_generator, val_generator =  augment_data(config, img_size)
