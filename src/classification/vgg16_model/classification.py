@@ -124,7 +124,11 @@ def crop_imgs(set_name, add_pixels_valu=0):
     """Crop images to precise with input of vgg16, remove black coners.
     """
     set_new = list()
-    
+    for img in set_name:
+        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        gray = cv2.GaussianBlur(gray, (5, 5), 0)
+
+        #
 def main():
     """Main program
     """
