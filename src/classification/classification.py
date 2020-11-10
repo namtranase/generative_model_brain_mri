@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 from tqdm import tqdm
 import cv2
@@ -20,6 +22,9 @@ from keras import layers
 from keras.models import Model, Sequential
 from keras.optimizers import Adam, RMSprop
 from keras.callbacks import EarlyStopping
+
+import settings
+from src.config.config import read_config_file
 
 RANDOM_SEED = 123
 
@@ -87,9 +92,20 @@ def plot_confusion_matrix(
     return None
 
 def main():
+    """Main program
+    """
+    config = read_config_file(settings.config_file)
+    print(config)
+    raise 1==2
+    if config['debug']:
+        logging.basicConfig(level=logging.INFO)
+    config = read_config_file(setting.config_file)
+
     # Train, test, val split
     status_split = split_train_test_val()
-    print(status_split)
+    logging.info("Status of split oeration: %s",status_split)
+
+    logging.info("Program was terminated!")
 
 if __name__ == "__main__":
     main()
