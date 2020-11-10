@@ -85,8 +85,8 @@ def load_data(dir_path, img_size=(100, 100)):
                 y.append(i)
         i += 1
 
-    X = np.array(X, dtype=object)
-    y = np.array(y, dtype=object)
+    X = np.array(X)
+    y = np.array(y)
     logging.info("%s images loaded from %s directory.", len(X), dir_path)
 
     return X, y, labels
@@ -118,9 +118,9 @@ def plot_samples(X, y, lables_dict, n=50):
 
         plt.suptitle('Tumor: {}'.format(lables_dict[index]))
         plt.savefig(
-            'src/classification/plot_{}.png'.format(lables_dict[index]))
+            'src/classification/vgg16_model/plot_{}.png'.format(lables_dict[index]))
 
-def crop_imgs(set_name, add_pixels_valu=0):
+def crop_imgs(set_name, add_pixels_value=0):
     """Crop images to precise with input of vgg16, remove black coners.
     """
     set_new = list()
@@ -128,7 +128,45 @@ def crop_imgs(set_name, add_pixels_valu=0):
         gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         gray = cv2.GaussianBlur(gray, (5, 5), 0)
 
-        #
+        #Remove any small region of noise
+        thresh = cv2.threshold(gray, 45, 255,cv2.THRESH_BINARY)[1]
+        thresh = cv2.erode(thresh, None, iterations=2)
+        thresh = cv2.dilate(thresh, None, iterations=2)
+
+        #Find contours
+        cnts = cv2.findContours(
+            thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cnts = imutils.grab_contours(cnts)
+        c = max(cnts, key=cv2.contourArea)
+
+        #Find the extreme points
+        ext_left = tuple(c[c[:, :, 0].argmin()][0])
+        ext_right = tuple(c[c[:, :, 0].argmax()][0])
+        ext_top = tuple(c[c[:, :, 1].argmin()][0])
+        ext_bot = tuple(c[c[:, :, 1].argmax()][0])
+
+        add_pixels = add_pixels_value
+        new_img = img[ext_top[1] - add_pixels:ext_bot[1] + add_pixels,
+                      ext_left[0] - add_pixels:ext_right[0] + add_pixels].copy()
+        set_new.append(new_img)
+
+    return np.array(set_new)
+
+def save_crop_images(x_set, y_set, file_dir):
+    """Save crop images.
+    """
+    if not os.path.exists(file_dir):
+            os.makedirs(file_dir + 'yes')
+            os.makedirs(file_dir + 'no')
+
+    i = 0
+    for (img, img_class) in zip(x_set, y_set):
+        if img_class == 0:
+            cv2.imwrite(file_dir + 'no/' + str(i) + '.jpg', img)
+        else:
+            cv2.imwrite(file_dir + 'yes/' + str(i) + '.jpg', img)
+        i += 1
+
 def main():
     """Main program
     """
@@ -155,7 +193,28 @@ def main():
     )
 
     # Plot image samples
-    plot_samples(X_train, y_train, labels, 30)
+    # plot_samples(X_train, y_train, labels, 30)
+
+    # Crop images
+    X_train_crop = crop_imgs(set_name=X_train)
+    X_test_crop = crop_imgs(set_name=X_test)
+    X_val_crop = crop_imgs(set_name=X_val)
+
+    plot_samples(X_train_crop, y_train, labels, 30)
+
+    # Save croped images
+    save_crop_images(
+        X_train_crop,
+        y_train,
+        config['classification']['vgg16']['train_dir_crop'])
+    save_crop_images(
+        X_test_crop,
+        y_test,
+        config['classification']['vgg16']['test_dir_crop'])
+    save_crop_images(
+        X_val_crop,
+        y_val,
+        config['classification']['vgg16']['val_dir_crop'])
 
     logging.info("Program was terminated!")
 

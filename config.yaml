@@ -8,3 +8,6 @@ classification:
     train_dir: 'data/kaggle_mri_classification/train/'
     test_dir: 'data/kaggle_mri_classification/test/'
     val_dir: 'data/kaggle_mri_classification/val/'
+    train_dir_crop: 'data/kaggle_mri_classification/train_crop/'
+    test_dir_crop: 'data/kaggle_mri_classification/test_crop/'
+    val_dir_crop: 'data/kaggle_mri_classification/val_crop/'
