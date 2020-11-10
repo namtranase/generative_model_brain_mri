@@ -128,18 +128,18 @@ def crop_imgs(set_name, add_pixels_value=0):
         gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         gray = cv2.GaussianBlur(gray, (5, 5), 0)
 
-        #Remove any small region of noise
+        # Remove any small region of noise
         thresh = cv2.threshold(gray, 45, 255,cv2.THRESH_BINARY)[1]
         thresh = cv2.erode(thresh, None, iterations=2)
         thresh = cv2.dilate(thresh, None, iterations=2)
 
-        #Find contours
+        # Find contours
         cnts = cv2.findContours(
             thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cnts = imutils.grab_contours(cnts)
         c = max(cnts, key=cv2.contourArea)
 
-        #Find the extreme points
+        # Find the extreme points
         ext_left = tuple(c[c[:, :, 0].argmin()][0])
         ext_right = tuple(c[c[:, :, 0].argmax()][0])
         ext_top = tuple(c[c[:, :, 1].argmin()][0])
@@ -167,6 +167,79 @@ def save_crop_images(x_set, y_set, file_dir):
             cv2.imwrite(file_dir + 'yes/' + str(i) + '.jpg', img)
         i += 1
 
+def preprocess_imgs(set_name, img_size):
+    """Resize and apply VGG-16 preprocessing.
+    """
+    set_new = list()
+    for img in set_name:
+        img = cv2.resize(
+            img,
+            dsize=img_size,
+            interpolation=cv2.INTER_CUBIC
+        )
+        set_new.append(preprocess_input(img))
+
+    return np.array(set_new)
+
+def augment_data(config, img_size):
+    """Augment data based on preprocessed images.
+    """
+    train_datagen = ImageDataGenerator(
+        rotation_range=15,
+        width_shift_range=0.1,
+        height_shift_range=0.1,
+        shear_range=0.1,
+        brightness_range=[0.5, 1.5],
+        horizontal_flip=True,
+        vertical_flip=True,
+        preprocessing_function=preprocess_input)
+
+    test_datagen = ImageDataGenerator(
+        preprocessing_function=preprocess_input)
+
+    train_generator = train_datagen.flow_from_directory(
+        config['classification']['vgg16']['train_dir_crop'],
+        color_mode='rgb',
+        target_size=img_size,
+        batch_size=32,
+        class_mode='binary',
+        seed=RANDOM_SEED)
+
+    val_generator = test_datagen.flow_from_directory(
+        config['classification']['vgg16']['val_dir_crop'],
+        color_mode='rgb',
+        target_size=img_size,
+        batch_size=16,
+        class_mode='binary',
+        seed=RANDOM_SEED)
+
+    return train_generator, val_generator
+
+def train_vgg16_model(config, train_generator, val_generator, img_size):
+    """Training preweight vgg16 model.
+    """
+    vgg16_weight_path = config['classification']['vgg16']['vgg16_weights']
+    base_model = VGG16(
+        weights=vgg16_weight_path,
+        include_top=False,
+        input_shape=img_size + (3,))
+
+    num_classes = 1
+
+    model = Sequential()
+    model.add(base_model)
+    model.add(layers.Flatten())
+    model.add(layers.Dropout(0.5))
+    model.add(layers.Dense(num_classes, activation='sigmoid'))
+
+    model.layers[0].trainable = False
+
+    model.compile(
+        loss = 'binary_crossentropy',
+        optimizer=RMSprop(lr=1e-4)
+        metrics=['accuracy'])
+    
+    model.summary()
 def main():
     """Main program
     """
@@ -216,7 +289,18 @@ def main():
         y_val,
         config['classification']['vgg16']['val_dir_crop'])
 
+    # Preprocess images, resize to apply vgg16
+    X_train_prep = preprocess_imgs(X_train_crop, img_size)
+    X_test_prep = preprocess_imgs(X_test_crop, img_size)
+    X_val_prep = preprocess_imgs(X_val_crop, img_size)
+    plot_samples(X_train_prep, y_train, labels, 30)
+
+    # Augment data for training
+    train_generator, val_generator =  augment_data(config, img_size)
     logging.info("Program was terminated!")
+
+    # Train model
+    train_vgg16_model(config, train_generator, val_generator, img_size)
 
 if __name__ == "__main__":
     main()
