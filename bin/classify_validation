@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from src.classification import classification
+from src.classification.vgg16_model import classification
 
 if __name__ == '__main__':
     start_time = datetime.now()
