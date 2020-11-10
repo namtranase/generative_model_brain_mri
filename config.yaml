@@ -1,2 +1,10 @@
 workers: 4
 debug: True
+
+classification:
+  vgg16:
+    img_path: 'data/kaggle_mri_classification/brain_tumor_dataset/'
+    split_path: 'data/kaggle_mri_classification/'
+    train_dir: 'data/kaggle_mri_classification/train/'
+    test_dir: 'data/kaggle_mri_classification/test/'
+    val_dir: 'data/kaggle_mri_classification/val/'
