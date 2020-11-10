@@ -85,34 +85,69 @@ def load_data(dir_path, img_size=(100, 100)):
                 y.append(i)
         i += 1
 
-    X = np.array(X)
-    y = np.array(y)
-    logging("%s images loaded from %s directory.", len(X), dir_path)
+    X = np.array(X, dtype=object)
+    y = np.array(y, dtype=object)
+    logging.debug("%s images loaded from %s directory.", len(X), dir_path)
 
     return X, y, labels
 
 def plot_confusion_matrix(
-    cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
+        cm, classes, normalize=False,
+        title='Confusion matrix', cmap=plt.cm.Blues):
     """Plot confusion matrix for images.
     """
-
+    # TODO: do it after
     return None
+
+def plot_samples(X, y, lables_dict, n=50):
+    """Plot grid for n images from specificed set.
+    """
+    for index in range(len(lables_dict)):
+        imgs = X[np.argwhere(y == index)][:n]
+        j = 10
+        i = int(n/j)
+        plt.figure(figsize=(15, 6))
+        c = 1
+        for img in imgs:
+            plt.subplot(i, i, c)
+            plt.imshow(img[0])
+
+            plt.xticks([])
+            plt.yticks([])
+            c += 1
+
+        plt.suptitle('Tumor: {}'.format(lables_dict[index]))
+        plt.savefig('plot_sample.png')
+        # plt.show()
 
 def main():
     """Main program
     """
     config = read_config_file(settings.config_file)
     if config['debug']:
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.DEBUG)
 
     # train, test, val split
     status_split = split_train_test_val(config)
     logging.info("Status of split oeration: %s",status_split)
 
     # Build data to training
-    train_dir = 'data/kaggle_mri_classification/train/'
-    test_dir = 'data/kaggle_mri_classification/test/'
-    val_dir = 'data/kaggle_mri_classification/val/'
+    img_size = (224, 224)
+    X_train, y_train, labels = load_data(
+        config['classification']['vgg16']['train_dir'],
+        img_size)
+    X_test, y_test, _ = load_data(
+        config['classification']['vgg16']['test_dir'],
+        img_size
+    )
+    X_val, y_val, _ = load_data(
+        config['classification']['vgg16']['val_dir'],
+        img_size
+    )
+
+    # Plot image samples
+    plot_samples(X_train, y_train, labels, 30)
+
     logging.info("Program was terminated!")
 
 if __name__ == "__main__":
