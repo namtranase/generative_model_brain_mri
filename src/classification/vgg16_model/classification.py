@@ -87,7 +87,7 @@ def load_data(dir_path, img_size=(100, 100)):
 
     X = np.array(X, dtype=object)
     y = np.array(y, dtype=object)
-    logging.debug("%s images loaded from %s directory.", len(X), dir_path)
+    logging.info("%s images loaded from %s directory.", len(X), dir_path)
 
     return X, y, labels
 
@@ -117,19 +117,24 @@ def plot_samples(X, y, lables_dict, n=50):
             c += 1
 
         plt.suptitle('Tumor: {}'.format(lables_dict[index]))
-        plt.savefig('src/classification/plot_sample.png')
-        # plt.show()
+        plt.savefig(
+            'src/classification/plot_{}.png'.format(lables_dict[index]))
 
+def crop_imgs(set_name, add_pixels_valu=0):
+    """Crop images to precise with input of vgg16, remove black coners.
+    """
+    set_new = list()
+    
 def main():
     """Main program
     """
     config = read_config_file(settings.config_file)
     if config['debug']:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.INFO)
 
     # train, test, val split
     status_split = split_train_test_val(config)
-    logging.info("Status of split oeration: %s",status_split)
+    logging.info("Status of split operation: %s",status_split)
 
     # Build data to training
     img_size = (224, 224)
