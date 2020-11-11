@@ -243,9 +243,9 @@ def train_vgg16_model(config, train_generator, val_generator, img_size):
 
     model.summary()
 
-    epochs = 30
+    epochs = 3
     es = EarlyStopping(
-        moniter='val_acc',
+        monitor='val_acc',
         mode='max',
         patience=6)
 
