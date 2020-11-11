@@ -215,6 +215,32 @@ def augment_data(config, img_size):
 
     return train_generator, val_generator
 
+def plot_results(epochs_range, acc, val_acc, loss, val_loss):
+    """Plot accuracy and loss of train and test set.
+    """
+    plt.figure(1)
+
+    # summarize history for accuracy
+    plt.subplot(211)
+    plt.plot(epochs_range, acc, label='Train Set')
+    plt.plot(epochs_range, val_acc, label='Val Set')
+    plt.title('Model Accuracy')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
+    plt.legend(['Training', 'Validation'], loc='lower right')
+
+    # summarize history for loss
+    plt.subplot(212)
+    plt.plot(epochs_range, loss, label='Train Loss')
+    plt.plot(epochs_range, val_loss, label='Val Loss')
+    plt.title('Model Loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend(['Training', 'Validation'], loc='upper right')
+
+    plt.tight_layout()
+    plt.savefig('src/classification/vgg16_model/results.png')
+
 def train_vgg16_model(config, train_generator, val_generator, img_size):
     """Training preweight vgg16 model.
     """
@@ -258,25 +284,24 @@ def train_vgg16_model(config, train_generator, val_generator, img_size):
         callbacks=[es])
 
     # Plot model performance
-    print(history)
-    acc = history.history['acc']
-    val_acc = history.historyp['val_acc']
+    acc = history.history['accuracy']
+    val_acc = history.history['val_accuracy']
     loss = history.history['loss']
-    va_loss = history.history['val_loss']
+    val_loss = history.history['val_loss']
     epochs_range = range(1, len(history.epoch) + 1)
+    plot_results(epochs_range, acc, val_acc, loss, val_loss)
+    # plt.figure(figsize=(15, 5))
 
-    plt.figure(figsize=(15, 5))
+    # plt.subplot(1, 2, 1)
+    # plt.plot(epochs_range, acc, label='Train Set')
+    # plt.plot(epochs_range, val_acc, label='Val Set')
+    # plt.legend(loc="best")
+    # plt.xlabel('Epochs')
+    # plt.ylabel('Accuracy')
+    # plt.title('Model Accuracy')
 
-    plt.subplot(1, 2, 1)
-    plt.plot(epochs_range, acc, lable='Train Set')
-    plt.plot(epochs_range, acc, lable='Val Set')
-    plt.legend(loc="best")
-    plt.xlabel('Epochs')
-    plt.ylabel('Accuracy')
-    plt.title('Model Accuracy')
-
-    plt.subplot(1, 2, 2)
-    plt.savefig('src/classification/vgg16_model/results.png')
+    # plt.subplot(1, 2, 2)
+    # plt.savefig('src/classification/vgg16_model/results.png')
 
 def main():
     """Main program
