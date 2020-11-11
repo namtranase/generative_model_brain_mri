@@ -257,6 +257,26 @@ def train_vgg16_model(config, train_generator, val_generator, img_size):
         validation_steps=25,
         callbacks=[es])
 
+    # Plot model performance
+    acc = history.history['acc']
+    val_acc = history.historyp['val_acc']
+    loss = history.history['loss']
+    va_loss = history.history['val_loss']
+    epochs_range = range(1, len(history.epoch) + 1)
+
+    plt.figure(figsize=(15, 5))
+
+    plt.subplot(1, 2, 1)
+    plt.plot(epochs_range, acc, lable='Train Set')
+    plt.plot(epochs_range, acc, lable='Val Set')
+    plt.legend(loc="best")
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.title('Model Accuracy')
+
+    plt.subplot(1, 2, 2)
+    plt.savefig('src/classification/vgg16_model/results.png')
+
 def main():
     """Main program
     """
