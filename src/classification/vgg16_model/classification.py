@@ -238,12 +238,12 @@ def train_vgg16_model(config, train_generator, val_generator, img_size):
 
     model.compile(
         loss = 'binary_crossentropy',
-        optimizer=RMSprop(lr=1e-4),
-        metrics=['accuracy'])
+        metrics=['accuracy'],
+        optimizer=RMSprop(lr=1e-4))
 
     model.summary()
 
-    epochs = 3
+    epochs = 30
     es = EarlyStopping(
         monitor='val_acc',
         mode='max',
@@ -258,6 +258,7 @@ def train_vgg16_model(config, train_generator, val_generator, img_size):
         callbacks=[es])
 
     # Plot model performance
+    print(history)
     acc = history.history['acc']
     val_acc = history.historyp['val_acc']
     loss = history.history['loss']
