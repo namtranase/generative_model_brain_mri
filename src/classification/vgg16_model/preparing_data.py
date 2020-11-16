@@ -79,7 +79,7 @@ def load_data(dir_path, img_size=(100, 100)):
 
     return X, y, labels
 
-def plot_samples(X, y, lables_dict, n=50):
+def plot_samples(config, X, y, lables_dict, n=50):
     """Plot grid for n images from specificed set.
     """
     for index in range(len(lables_dict)):
@@ -191,7 +191,7 @@ def main():
     X_train_crop = crop_imgs(set_name=X_train)
     X_test_crop = crop_imgs(set_name=X_test)
     X_val_crop = crop_imgs(set_name=X_val)
-    plot_samples(X_train_crop, y_train, labels, 30)
+    plot_samples(config, X_train_crop, y_train, labels, 30)
 
     # Save croped images
     save_crop_images(
@@ -206,12 +206,6 @@ def main():
         X_val_crop,
         y_val,
         config['classification']['vgg16']['val_dir_crop'])
-
-    # Preprocess images, resize to apply vgg16
-    X_train_prep = preprocess_imgs(X_train_crop, img_size)
-    X_test_prep = preprocess_imgs(X_test_crop, img_size)
-    X_val_prep = preprocess_imgs(X_val_crop, img_size)
-    plot_samples(X_train_prep, y_train, labels, 30)
 
 if __name__ == "__main__":
     main()
