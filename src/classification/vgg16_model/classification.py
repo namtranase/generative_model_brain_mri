@@ -219,11 +219,10 @@ def plot_results(epochs_range, acc, val_acc, loss, val_loss):
     """Plot accuracy and loss of train and test set.
     """
     plt.figure(1)
-
     # summarize history for accuracy
     plt.subplot(211)
-    plt.plot(epochs_range, acc, label='Train Set')
-    plt.plot(epochs_range, val_acc, label='Val Set')
+    plt.plot(acc, label='Train Set')
+    plt.plot(val_acc, label='Val Set')
     plt.title('Model Accuracy')
     plt.ylabel('Accuracy')
     plt.xlabel('Epoch')
@@ -231,8 +230,8 @@ def plot_results(epochs_range, acc, val_acc, loss, val_loss):
 
     # summarize history for loss
     plt.subplot(212)
-    plt.plot(epochs_range, loss, label='Train Loss')
-    plt.plot(epochs_range, val_loss, label='Val Loss')
+    plt.plot(loss, label='Train Loss')
+    plt.plot(val_loss, label='Val Loss')
     plt.title('Model Loss')
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
@@ -310,52 +309,52 @@ def main():
     if config['debug']:
         logging.basicConfig(level=logging.INFO)
 
-    # train, test, val split
-    status_split = split_train_test_val(config)
-    logging.info("Status of split operation: %s",status_split)
-
-    # Build data to training
     img_size = (224, 224)
-    X_train, y_train, labels = load_data(
-        config['classification']['vgg16']['train_dir'],
-        img_size)
-    X_test, y_test, _ = load_data(
-        config['classification']['vgg16']['test_dir'],
-        img_size
-    )
-    X_val, y_val, _ = load_data(
-        config['classification']['vgg16']['val_dir'],
-        img_size
-    )
+    # # train, test, val split
+    # status_split = split_train_test_val(config)
+    # logging.info("Status of split operation: %s",status_split)
 
-    # Plot image samples
-    # plot_samples(X_train, y_train, labels, 30)
+    # # Build data to training
+    # X_train, y_train, labels = load_data(
+    #     config['classification']['vgg16']['train_dir'],
+    #     img_size)
+    # X_test, y_test, _ = load_data(
+    #     config['classification']['vgg16']['test_dir'],
+    #     img_size
+    # )
+    # X_val, y_val, _ = load_data(
+    #     config['classification']['vgg16']['val_dir'],
+    #     img_size
+    # )
 
-    # Crop images
-    X_train_crop = crop_imgs(set_name=X_train)
-    X_test_crop = crop_imgs(set_name=X_test)
-    X_val_crop = crop_imgs(set_name=X_val)
-    # plot_samples(X_train_crop, y_train, labels, 30)
+    # # Plot image samples
+    # # plot_samples(X_train, y_train, labels, 30)
 
-    # Save croped images
-    save_crop_images(
-        X_train_crop,
-        y_train,
-        config['classification']['vgg16']['train_dir_crop'])
-    save_crop_images(
-        X_test_crop,
-        y_test,
-        config['classification']['vgg16']['test_dir_crop'])
-    save_crop_images(
-        X_val_crop,
-        y_val,
-        config['classification']['vgg16']['val_dir_crop'])
+    # # Crop images
+    # X_train_crop = crop_imgs(set_name=X_train)
+    # X_test_crop = crop_imgs(set_name=X_test)
+    # X_val_crop = crop_imgs(set_name=X_val)
+    # # plot_samples(X_train_crop, y_train, labels, 30)
 
-    # Preprocess images, resize to apply vgg16
-    X_train_prep = preprocess_imgs(X_train_crop, img_size)
-    X_test_prep = preprocess_imgs(X_test_crop, img_size)
-    X_val_prep = preprocess_imgs(X_val_crop, img_size)
-    # plot_samples(X_train_prep, y_train, labels, 30)
+    # # Save croped images
+    # save_crop_images(
+    #     X_train_crop,
+    #     y_train,
+    #     config['classification']['vgg16']['train_dir_crop'])
+    # save_crop_images(
+    #     X_test_crop,
+    #     y_test,
+    #     config['classification']['vgg16']['test_dir_crop'])
+    # save_crop_images(
+    #     X_val_crop,
+    #     y_val,
+    #     config['classification']['vgg16']['val_dir_crop'])
+
+    # # Preprocess images, resize to apply vgg16
+    # X_train_prep = preprocess_imgs(X_train_crop, img_size)
+    # X_test_prep = preprocess_imgs(X_test_crop, img_size)
+    # X_val_prep = preprocess_imgs(X_val_crop, img_size)
+    # # plot_samples(X_train_prep, y_train, labels, 30)
 
     # Augment data for training
     train_generator, val_generator =  augment_data(config, img_size)
