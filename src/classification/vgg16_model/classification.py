@@ -82,7 +82,7 @@ def augment_data(config, img_size):
 
     return train_generator, val_generator
 
-def plot_results(epochs_range, acc, val_acc, loss, val_loss):
+def plot_results(config, epochs_range, acc, val_acc, loss, val_loss):
     """Plot accuracy and loss of train and test set.
     """
     plt.figure(1)
@@ -138,16 +138,16 @@ def train_vgg16_model(config, train_generator, val_generator, img_size):
 
     epochs = 3
     es = EarlyStopping(
-        monitor='val_acc',
+        monitor='val_accuracy',
         mode='max',
         patience=6)
 
     history = model.fit_generator(
         train_generator,
-        steps_per_epoch=50,
+        steps_per_epoch=6,
         epochs=epochs,
         validation_data=val_generator,
-        validation_steps=25,
+        validation_steps=3,
         callbacks=[es])
 
     # Plot model performance
@@ -157,18 +157,6 @@ def train_vgg16_model(config, train_generator, val_generator, img_size):
     val_loss = history.history['val_loss']
     epochs_range = range(1, len(history.epoch) + 1)
     plot_results(config, epochs_range, acc, val_acc, loss, val_loss)
-    # plt.figure(figsize=(15, 5))
-
-    # plt.subplot(1, 2, 1)
-    # plt.plot(epochs_range, acc, label='Train Set')
-    # plt.plot(epochs_range, val_acc, label='Val Set')
-    # plt.legend(loc="best")
-    # plt.xlabel('Epochs')
-    # plt.ylabel('Accuracy')
-    # plt.title('Model Accuracy')
-
-    # plt.subplot(1, 2, 2)
-    # plt.savefig('src/classification/vgg16_model/results.png')
 
 def main():
     """Main program
@@ -187,10 +175,10 @@ def main():
 
     # Augment data for training
     train_generator, val_generator =  augment_data(config, img_size)
-    logging.info("Program was terminated!")
 
     # Train model
     train_vgg16_model(config, train_generator, val_generator, img_size)
+    logging.info("Program was terminated!")
 
 if __name__ == "__main__":
     main()
