@@ -7,3 +7,4 @@ matplotlib
 opencv-python
 imutils
 tensorflow
+PyYAML

@@ -1,0 +1,10 @@
+#!/usr/bin/env python
+
+from datetime import datetime
+
+from src.classification.vgg16_model import classification
+
+if __name__ == '__main__':
+    start_time = datetime.now()
+    classification.main()
+    print("Run time: {}".format(datetime.now() - start_time))
