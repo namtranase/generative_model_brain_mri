@@ -1,5 +1,4 @@
-""" reference Progeressive growing gan 2017: https://arxiv.org/abs/1710.10196 
-"""
+""" reference Progeressive growing gan 2017: https://arxiv.org/abs/1710.10196 """
 
 
 
