@@ -27,10 +27,14 @@ from tensorflow.keras import backend
 from numpy import asarray
 from numpy import zeros
 from numpy import ones
+from numpy.random import randn
+from numpy.random import randint
+from math import sqrt
 from matplotlib import pyplot
 
 from skimage import io
 from PIL import Image
+from skimage.transform import resize
 import os 
 import glob 
 import numpy as np
@@ -57,13 +61,13 @@ class FadeBlock(Add):
 class Minibatchstev(Layer):
   # init this layer
   def __init__(self,**kwargs):
-    super(Minibatchstev,self).__init__(**kwags)
+    super(Minibatchstev,self).__init__(**kwargs)
 
   def call(self, inputs):
     # calculate the mean value cross the batch 
     mean_3d = backend.mean(inputs, axis = 0,keepdims = True)
     # calculate squared different (variance) between pixel value (inputs and mean)
-    squared_diff = backend.square(input - mean)
+    squared_diff = backend.square(inputs - mean)
     # calculate mean of variance
     mean_squared_diff = backend.mean(squared_diff,axis = 0,keepdims = True)
     # add a small value to avoid a blow-up when we calculate stdev (ensure the mean is not zero)
@@ -179,12 +183,11 @@ def discriminator(blocks,input_shape = (4,4,3)):
   d = Conv2D(128,(1,1),padding='same',kernel_initializer='he_normal')(in_image)
   d = LeakyReLU(alpha=0.2)(d)
   #conv 3x3
+  d = Minibatchstev()(d)
   d = Conv2D(128,(3,3),padding='same',kernel_initializer='he_normal')(d)
-  d = BatchNormalization()(d)
   d = LeakyReLU(alpha=0.2)(d)
   #conv 4x4
   d = Conv2D(128,(4,4),padding ='same',kernel_initializer='he_normal')(d)
-  d = BatchNormalization()(d)
   d = LeakyReLU(alpha=0.2)(d)
 
   #dense output
@@ -194,7 +197,7 @@ def discriminator(blocks,input_shape = (4,4,3)):
   # define mode
   model = Model(in_image,out_class)
   # compile mode
-  model.compile(loss = 'mse',optimizer = Adam(learning_rate=0.001,beta_1=0,beta_2=0.99,epsilon= 10e-8))
+  model.compile(loss = wassertein_loss,optimizer = Adam(learning_rate=0.001,beta_1=0,beta_2=0.99,epsilon= 10e-8))
   # store model
   model_list.append([model,model])
 
@@ -223,7 +226,11 @@ def add_G_block(old_model):
   model1=Model(old_model.input,out_image)
 
   # old output 
-  out_image2 = Conv2D(3,(1,1),padding='same',kernel_initializer=init,kernel_constraint=max_norm(1))(upsampling)
+  out_old = old_model.layers[-1]
+  out_image2 = out_old(upsampling)
+
+  # old output 
+  #out_image2 = Conv2D(3,(1,1),padding='same',kernel_initializer=init,kernel_constraint=max_norm(1))(upsampling)
   merged = FadeBlock()([out_image2,out_image])
   # new version model
   model2 = Model(old_model.input,merged) 
@@ -276,6 +283,7 @@ def Composite(D_model,G_model):
     model1.add(d_model[0])
     model1.compile(loss = wassertein_loss,optimizer = Adam(learning_rate=0.001,beta_1=0,beta_2=0.99,epsilon=1e-07))
     # fade in model
+    d_model[1].trainable = False
     model2 = Sequential()
     model2.add(g_model[0])
     model2.add(d_model[0])
@@ -373,7 +381,7 @@ def train_epochs(g_model,d_model,gan_model,dataset,n_epochs,n_batchs,fadein = Fa
       # update alpha for all fadeblock layer when fading in
       update_alpha_fadeblock([g_model,d_model,gan_model],i,n_steps)
     # creat real and fake data
-    X_real, y_real = generate_x_input(dataset,int(n_batchs/2))
+    X_real, y_real = select_real_sample(dataset,int(n_batchs/2))
     X_fake, y_fake = generate_fake_img(g_model,latent_dim,int(n_batchs/2))
     # update discriminator
     d_loss1 = d_model.train_on_batch(X_real,y_real)
@@ -382,16 +390,17 @@ def train_epochs(g_model,d_model,gan_model,dataset,n_epochs,n_batchs,fadein = Fa
     z_input = generate_latent_points(latent_dim, n_batch)
     y_real2 = ones((n_batch, 1))
     g_loss = gan_model.train_on_batch(z_input, y_real2)
+    print('>%d, d1=%.3f, d2=%.3f g=%.3f' % (i+1, d_loss1, d_loss2, g_loss))
 
 def train(g_models,d_models,gan_models,dataset,lantent_dim,e_norm, e_fadein , n_batch):
   # fit the first model in list models
   g_model, d_model, gan_model = g_models[0][0], d_models[0][0], gan_models[0][0]
   # get output shape
   gen_shape = g_model.output_shape
-  scale_data = scale_dataset(dataset,gen_shape[1:])
-  
-  train_epochs(g_model,d_model,gan_model,dataset,e_norm[0],n_batchs[0])
-
+  scaled_data = scale_dataset(dataset,gen_shape[1:])
+  print('Scaled Data', scaled_data.shape)
+  train_epochs(g_model,d_model,gan_model,scaled_data,e_norm[0],n_batchs[0])
+  summarize_performance('tuned', g_model, latent_dim)
   for i in range(1,len(g_models)):
     [g_model,g_fade] = g_models[i]
     [d_model, d_fade] = d_models[i]
@@ -399,8 +408,9 @@ def train(g_models,d_models,gan_models,dataset,lantent_dim,e_norm, e_fadein , n_
     # scale dataset to appropriate size
     gen_shape = g_model.output_shape
     scaled_data = scale_dataset(dataset, gen_shape[1:])
+    print('Scaled Data', scaled_data.shape)
     # train fade-in models for next level of growth
-    train_epochs(g_fade,d_fade,gan_fade,dataset,e_fade[i],n_batch[i],True)
+    train_epochs(g_fade,d_fade,gan_fade,scaled_data,e_fade[i],n_batch[i],True)
     summarize_performance('faded', g_fade, latent_dim)
     # train normal or straight-through models
     train_epochs(g_model, d_model, gan_model, scaled_data, e_norm[i], n_batch[i])
