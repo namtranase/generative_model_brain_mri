@@ -320,11 +320,11 @@ def train(data_shape, epoch, checkpoint_path):
 # Hyperparameters
 IMAGE_SIZE = 128
 NOISE_SIZE = 100
-LR_D = 0.00004
+LR_D = 0.0001
 LR_G = 0.0002
 BATCH_SIZE = 64
 EPOCH = 0 # Non-zero only if we are resuming training with model checkpoint
-EPOCHS = 5 #EPOCH + number of epochs to perform
+EPOCHS = 150 #EPOCH + number of epochs to perform
 BETA1 = 0.5
 WEIGHT_INIT_STDDEV = 0.02
 EPSILON = 0.00005
