@@ -12,7 +12,7 @@ drive.mount('/content/drive/')
 
 """# Libraries"""
 
-import os 
+import os
 import glob
 
 import tensorflow as tf
@@ -59,7 +59,7 @@ class FadeBlock(Add):
   def __init__(self, alpha=0.0, **kwargs):
     super(FadeBlock, self).__init__(**kwargs)
     self.alpha = backend.variable(alpha, name='ws_alpha') # Explain?
- 
+
 	# output a weighted sum of inputs
   def _merge_function(self, inputs):
     assert (len(inputs) == 2)
@@ -80,7 +80,7 @@ class Minibatchstev(Layer):
     super(Minibatchstev,self).__init__(**kwags)
 
   def call(self, inputs):
-    # calculate the mean value cross the batch 
+    # calculate the mean value cross the batch
     mean_3d = backend.mean(inputs, axis=0, keepdims = True)
     # calculate squared different (variance) between pixel value (inputs and mean)
 
@@ -101,7 +101,7 @@ class Minibatchstev(Layer):
     combined = backend.concatenate([inputs, output], axis=-1)
 
     return combined
-  
+
   def caculate_output_shape(self,input_shape):
     """To:
     """
@@ -112,7 +112,7 @@ class Minibatchstev(Layer):
 """## Pixel Normalization class"""
 
 class PixelNormalization(Layer):
-  """To: 
+  """To:
   """
   def __init__(self,**kwargs):
     super(PixelNormalization,self).__init__(**kwargs)
@@ -149,7 +149,7 @@ def wassertein_loss(ytrue,ypred):
 """## Grow Disciminator block"""
 
 def add_D_block(old_model, n_input_layer=3):
-  """ 
+  """
   this function return 2 version:
   1.model without newblock
   2.model with newblock (use fadedblock)
@@ -165,7 +165,7 @@ def add_D_block(old_model, n_input_layer=3):
   # From RGB block
   d = Conv2D(128, (1,1), padding='same', kernel_initializer=init, kernel_constraint=max_norm(1))(in_image)
   d = LeakyReLU(alpha=0.2)(d)
-  
+
   # new block
   d = Conv2D(128,(3,3),padding = 'same', kernel_initializer=init, kernel_constraint=max_norm(1.0))(d)
   d = LeakyReLU(alpha=0.2)(d)
@@ -183,7 +183,7 @@ def add_D_block(old_model, n_input_layer=3):
   # compile mode1
   model1.compile(loss = wassertein_loss,
                  optimizer = Adam(learning_rate = 0.001, beta_1=0, beta_2=0.99, epsilon=10e-8))
-    
+
   # downsample the new larger image
   downsample = AveragePooling2D()(in_image)
   # connect old input to downsampled new input
@@ -204,7 +204,7 @@ def add_D_block(old_model, n_input_layer=3):
   # compile mode2
   model2.compile(loss=wassertein_loss,
                  optimizer=Adam(learning_rate=0.001, beta_1=0 ,beta_2=0.99, epsilon=10e-8))
-  
+
   return [model1, model2]
 
 """## Grow Gennerator block"""
@@ -224,11 +224,11 @@ def add_G_block(old_model):
   g = Conv2D(128,(3,3),padding='same',kernel_initializer=init,kernel_constraint=max_norm(1))(g)
   g = PixelNormalization()(g)
   g = LeakyReLU(alpha=0.2)(g)
-  # new layer ouput 
+  # new layer ouput
   out_image = Conv2D(3,(1,1),padding='same',kernel_initializer=init,kernel_constraint=max_norm(1))(g)
   model1=Model(old_model.input,out_image)
 
-  
+
   out_image2 = Conv2D(3,(1,1),padding='same',kernel_initializer=init,kernel_constraint=max_norm(1))(upsampling)
   merged = FadeBlock()([out_image2, out_image])
   model2 = Model(old_model.input, merged)
@@ -268,7 +268,7 @@ def discriminator(blocks, input_shape=(4,4,3)):
                 optimizer=Adam(learning_rate=0.001,beta_1=0,beta_2=0.99,epsilon= 10e-8))
   # store model
   model_list.append([model,model])
-  
+
   for i in range(1,blocks):
     #old_model = model_list[i-1][0]
     models = add_D_block(model_list[i-1][0])
@@ -311,7 +311,7 @@ def generator(latent_dim, blocks, in_dim=4):
     models = add_G_block(old_model)
     #store
     model_list.append(models)
-    
+
   return model_list
 
 """# Pretraining
@@ -338,7 +338,7 @@ def Composite(D_model, G_model):
     model2.compile(loss = wassertein_loss,optimizer = Adam(learning_rate=0.001,beta_1=0,beta_2=0.99,epsilon=1e-07))
     #store
     model_list.append([model1, model2])
-    
+
   return model_list
 
 """## Preinput"""
@@ -365,7 +365,7 @@ def scale_dataset(dataset, new_shape):
     # store
     images_list.append(new_image)
     return asarray(images_list)
- 
+
 def select_real_sample(dataset,n_sample):
   # choose random sample
   indx = randint(0,dataset.shape[0],n_sample)
@@ -377,7 +377,7 @@ def select_real_sample(dataset,n_sample):
 def generate_x_input(latent_dim, n_sample):
   """Explained?
   """
-  # random input 
+  # random input
   x_input = randn(latent_dim*n_sample)
   # reshape into a batch of inputs for network
   x_input = x_input.reshape(n_sample,latent_dim)
@@ -452,7 +452,7 @@ def train(g_models,d_models,gan_models,dataset,lantent_dim, e_norm, e_fadein, n_
   # get output shape
   gen_shape = g_model.output_shape
   scale_data = scale_dataset(dataset,gen_shape[1:])
-  
+
   train_epochs(g_model,d_model,gan_model,dataset,e_norm[0],n_batchs[0])
 
   for i in range(1,len(g_models)):

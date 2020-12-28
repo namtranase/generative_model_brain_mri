@@ -34,7 +34,7 @@ MODEL_PATH = '/content/drive/MyDrive/data/data/augmented data/model'
 TRAIN_LOGDIR = os.path.join("logs", "tensorflow", 'train_data') # Sets up a log directory.
 if not os.path.exists(OUTPUT_PATH):
     os.makedirs(OUTPUT_PATH)
-    
+
 batch_size = 16
 # Start from 4 * 4
 image_size = 4
@@ -156,14 +156,14 @@ class EqualizeLearningRate(tf.keras.layers.Wrapper):
 
         self.v = kernel
         self.built = True
-    
+
     def call(self, inputs, training=True):
         """Call `Layer`"""
 
         with tf.name_scope('compute_weights'):
             # Multiply the kernel with the he constant.
             kernel = tf.identity(self.v * self.he_constant)
-            
+
             if self.is_rnn:
                 print(self.is_rnn)
                 self.layer.cell.recurrent_kernel = kernel
@@ -180,7 +180,7 @@ class EqualizeLearningRate(tf.keras.layers.Wrapper):
     def compute_output_shape(self, input_shape):
         return tf.TensorShape(
             self.layer.compute_output_shape(input_shape).as_list())
-    
+
     def _compute_fans(self, shape, data_format='channels_last'):
         """
         From Official Keras implementation
@@ -233,7 +233,7 @@ class PixelNormalization(tf.keras.layers.Layer):
 
     def call(self, inputs):
         return inputs / tf.sqrt(tf.reduce_mean(tf.square(inputs), axis=-1, keepdims=True) + self.epsilon)
-    
+
     def compute_output_shape(self, input_shape):
         return input_shape
 
@@ -241,7 +241,7 @@ class MinibatchSTDDEV(tf.keras.layers.Layer):
     """
     Reference from official pggan implementation
     https://github.com/tkarras/progressive_growing_of_gans/blob/master/networks.py
-    
+
     Arguments:
       group_size: a integer number, minibatch must be divisible by (or smaller than) group_size.
     """
@@ -261,7 +261,7 @@ class MinibatchSTDDEV(tf.keras.layers.Layer):
         y = tf.cast(y, inputs.dtype)                                 # [M111]  Cast back to original data type.
         y = tf.tile(y, [group_size, s[1], s[2], 1])             # [NHW1]  Replicate over group and pixels.
         return tf.concat([inputs, y], axis=-1)                        # [NHWC]  Append as new fmap.
-    
+
     def compute_output_shape(self, input_shape):
         return (input_shape[0], input_shape[1], input_shape[2], input_shape[3] + 1)
 
@@ -323,7 +323,7 @@ def build_4x4_generator(noise_dim=NOISE_DIM):
     alpha = Input((1), name='input_alpha')
     to_rgb = EqualizeLearningRate(Conv2D(3, kernel_size=1, strides=1,  padding='same', activation=output_activation,
                     kernel_initializer=kernel_initializer, bias_initializer='zeros'), name='to_rgb_{}x{}'.format(4, 4))
-    
+
     rgb_out = to_rgb(x)
     model = Model(inputs=[inputs, alpha], outputs=rgb_out)
     return model
@@ -336,14 +336,14 @@ def build_8x8_generator(noise_dim=NOISE_DIM):
     inputs = Input(noise_dim)
     x = generator_input_block(inputs)
     alpha = Input((1), name='input_alpha')
-    
+
     ########################
     # Fade in block
     ########################
     x, up_x = upsample_block(x, in_filters=512, filters=512, kernel_size=3, strides=1,
                                          padding='same', activation=tf.nn.leaky_relu, name='Up_{}x{}'.format(8, 8))
-    
-    
+
+
     previous_to_rgb = EqualizeLearningRate(Conv2D(3, kernel_size=1, strides=1,  padding='same', activation=output_activation,
                     kernel_initializer=kernel_initializer, bias_initializer='zeros'), name='to_rgb_{}x{}'.format(4, 4))
     to_rgb = EqualizeLearningRate(Conv2D(3, kernel_size=1, strides=1,  padding='same', activation=output_activation,
@@ -360,7 +360,7 @@ def build_8x8_generator(noise_dim=NOISE_DIM):
     ########################
     r_x = Multiply()([alpha, r_x])
     combined = Add()([l_x, r_x])
-    
+
     model = Model(inputs=[inputs, alpha], outputs=combined)
     return model
 
@@ -382,7 +382,7 @@ def build_16x16_generator(noise_dim=NOISE_DIM):
     ########################
     x, up_x = upsample_block(x, in_filters=512, filters=512, kernel_size=3, strides=1,
                                          padding='same', activation=tf.nn.leaky_relu, name='Up_{}x{}'.format(16, 16))
-    
+
     previous_to_rgb = EqualizeLearningRate(Conv2D(3, kernel_size=1, strides=1,  padding='same', activation=output_activation,
                     kernel_initializer=kernel_initializer, bias_initializer='zeros'), name='to_rgb_{}x{}'.format(8, 8))
     to_rgb = EqualizeLearningRate(Conv2D(3, kernel_size=1, strides=1,  padding='same', activation=output_activation,
@@ -399,7 +399,7 @@ def build_16x16_generator(noise_dim=NOISE_DIM):
     ########################
     r_x = Multiply()([alpha, r_x])
     combined = Add()([l_x, r_x])
-    
+
     model = Model(inputs=[inputs, alpha], outputs=combined)
     return model
 
@@ -423,7 +423,7 @@ def build_32x32_generator(noise_dim=NOISE_DIM):
     ########################
     x, up_x = upsample_block(x, in_filters=512, filters=512, kernel_size=3, strides=1,
                                          padding='same', activation=tf.nn.leaky_relu, name='Up_{}x{}'.format(32, 32))
-    
+
     previous_to_rgb = EqualizeLearningRate(Conv2D(3, kernel_size=1, strides=1,  padding='same', activation=output_activation,
                     kernel_initializer=kernel_initializer, bias_initializer='zeros'), name='to_rgb_{}x{}'.format(16, 16))
     to_rgb = EqualizeLearningRate(Conv2D(3, kernel_size=1, strides=1,  padding='same', activation=output_activation,
@@ -440,7 +440,7 @@ def build_32x32_generator(noise_dim=NOISE_DIM):
     ########################
     r_x = Multiply()([alpha, r_x])
     combined = Add()([l_x, r_x])
-    
+
     model = Model(inputs=[inputs, alpha], outputs=combined)
     return model
 
@@ -466,12 +466,12 @@ def build_64x64_generator(noise_dim=NOISE_DIM):
     ########################
     x, up_x = upsample_block(x, in_filters=512, filters=256, kernel_size=3, strides=1,
                                          padding='same', activation=tf.nn.leaky_relu, name='Up_{}x{}'.format(64, 64))
-    
+
     previous_to_rgb = EqualizeLearningRate(Conv2D(3, kernel_size=1, strides=1,  padding='same', activation=output_activation,
                     kernel_initializer=kernel_initializer, bias_initializer='zeros'), name='to_rgb_{}x{}'.format(32, 32))
     to_rgb = EqualizeLearningRate(Conv2D(3, kernel_size=1, strides=1,  padding='same', activation=output_activation,
                     kernel_initializer=kernel_initializer, bias_initializer='zeros'), name='to_rgb_{}x{}'.format(64, 64))
-    
+
     l_x = to_rgb(x)
     r_x = previous_to_rgb(up_x)
     ########################
@@ -483,7 +483,7 @@ def build_64x64_generator(noise_dim=NOISE_DIM):
     ########################
     r_x = Multiply()([alpha, r_x])
     combined = Add()([l_x, r_x])
-    
+
     model = Model(inputs=[inputs, alpha], outputs=combined)
     return model
 
@@ -511,12 +511,12 @@ def build_128x128_generator(noise_dim=NOISE_DIM):
     ########################
     x, up_x = upsample_block(x, in_filters=256, filters=128, kernel_size=3, strides=1,
                                          padding='same', activation=tf.nn.leaky_relu, name='Up_{}x{}'.format(128, 128))
-    
+
     previous_to_rgb = EqualizeLearningRate(Conv2D(3, kernel_size=1, strides=1,  padding='same', activation=output_activation,
                     kernel_initializer=kernel_initializer, bias_initializer='zeros'), name='to_rgb_{}x{}'.format(64, 64))
     to_rgb = EqualizeLearningRate(Conv2D(3, kernel_size=1, strides=1,  padding='same', activation=output_activation,
                     kernel_initializer=kernel_initializer, bias_initializer='zeros'), name='to_rgb_{}x{}'.format(128, 128))
-    
+
     l_x = to_rgb(x)
     r_x = previous_to_rgb(up_x)
     ########################
@@ -528,7 +528,7 @@ def build_128x128_generator(noise_dim=NOISE_DIM):
     ########################
     r_x = Multiply()([alpha, r_x])
     combined = Add()([l_x, r_x])
-    
+
     model = Model(inputs=[inputs, alpha], outputs=combined)
     return model
 
@@ -558,12 +558,12 @@ def build_256x256_generator(noise_dim=NOISE_DIM):
     ########################
     x, up_x = upsample_block(x, in_filters=128, filters=64, kernel_size=3, strides=1,
                                          padding='same', activation=tf.nn.leaky_relu, name='Up_{}x{}'.format(256, 256))
-    
+
     previous_to_rgb = EqualizeLearningRate(Conv2D(3, kernel_size=1, strides=1,  padding='same', activation=output_activation,
                     kernel_initializer=kernel_initializer, bias_initializer='zeros'), name='to_rgb_{}x{}'.format(128, 128))
     to_rgb = EqualizeLearningRate(Conv2D(3, kernel_size=1, strides=1,  padding='same', activation=output_activation,
                     kernel_initializer=kernel_initializer, bias_initializer='zeros'), name='to_rgb_{}x{}'.format(256, 256))
-    
+
     l_x = to_rgb(x)
     r_x = previous_to_rgb(up_x)
     ########################
@@ -575,7 +575,7 @@ def build_256x256_generator(noise_dim=NOISE_DIM):
     ########################
     r_x = Multiply()([alpha, r_x])
     combined = Add()([l_x, r_x])
-    
+
     model = Model(inputs=[inputs, alpha], outputs=combined)
     return model
 
@@ -607,12 +607,12 @@ def build_512x512_generator(noise_dim=NOISE_DIM):
     ########################
     x, up_x = upsample_block(x, in_filters=64, filters=32, kernel_size=3, strides=1,
                                          padding='same', activation=tf.nn.leaky_relu, name='Up_{}x{}'.format(512, 512))
-    
+
     previous_to_rgb = EqualizeLearningRate(Conv2D(3, kernel_size=1, strides=1,  padding='same', activation=output_activation,
                     kernel_initializer=kernel_initializer, bias_initializer='zeros'), name='to_rgb_{}x{}'.format(256, 256))
     to_rgb = EqualizeLearningRate(Conv2D(3, kernel_size=1, strides=1,  padding='same', activation=output_activation,
                     kernel_initializer=kernel_initializer, bias_initializer='zeros'), name='to_rgb_{}x{}'.format(512, 512))
-    
+
     l_x = to_rgb(x)
     r_x = previous_to_rgb(up_x)
     ########################
@@ -624,7 +624,7 @@ def build_512x512_generator(noise_dim=NOISE_DIM):
     ########################
     r_x = Multiply()([alpha, r_x])
     combined = Add()([l_x, r_x])
-    
+
     model = Model(inputs=[inputs, alpha], outputs=combined)
     return model
 
@@ -779,7 +779,7 @@ def build_64x64_discriminator():
     inputs = Input((64, 64, 3))
     alpha = Input((1), name='input_alpha')
     downsample = AveragePooling2D(pool_size=2)
-    
+
     ########################
     # Left branch in the paper
     ########################
@@ -821,7 +821,7 @@ def build_128x128_discriminator():
     inputs = Input((128, 128, 3))
     alpha = Input((1), name='input_alpha')
     downsample = AveragePooling2D(pool_size=2)
-   
+
     ########################
     # Left branch in the paper
     ########################
@@ -910,7 +910,7 @@ def build_512x512_discriminator():
     inputs = Input((512, 512, 3))
     alpha = Input((1), name='input_alpha')
     downsample = AveragePooling2D(pool_size=2)
-    
+
     ########################
     # Left branch in the paper
     ########################
@@ -1005,7 +1005,7 @@ def set_learning_rate(new_lr, D_optimizer, G_optimizer):
     '''
     K.set_value(D_optimizer.lr, new_lr)
     K.set_value(G_optimizer.lr, new_lr)
-    
+
 def calculate_batch_size(image_size):
     if image_size < 64:
         return 16
@@ -1042,7 +1042,7 @@ generate_and_save_images(generator, 0, [sample_noise, sample_alpha], figure_size
 def WGAN_GP_train_d_step(generator, discriminator, real_image, alpha, batch_size, step):
     '''
         One training step
-        
+
         Reference: https://www.tensorflow.org/tutorials/generative/dcgan
     '''
     noise = tf.random.normal([batch_size, NOISE_DIM])
@@ -1055,15 +1055,15 @@ def WGAN_GP_train_d_step(generator, discriminator, real_image, alpha, batch_size
             fake_image = generator([noise, alpha], training=True)
             fake_image_mixed = epsilon * tf.dtypes.cast(real_image, tf.float32) + ((1 - epsilon) * fake_image)
             fake_mixed_pred = discriminator([fake_image_mixed, alpha], training=True)
-            
+
         # Compute gradient penalty
         grads = gp_tape.gradient(fake_mixed_pred, fake_image_mixed)
         grad_norms = tf.sqrt(tf.reduce_sum(tf.square(grads), axis=[1, 2, 3]))
         gradient_penalty = tf.reduce_mean(tf.square(grad_norms - 1))
-        
+
         fake_pred = discriminator([fake_image, alpha], training=True)
         real_pred = discriminator([real_image, alpha], training=True)
-        
+
         D_loss = tf.reduce_mean(fake_pred) - tf.reduce_mean(real_pred) + LAMBDA * gradient_penalty
     # Calculate the gradients for discriminator
     D_gradients = d_tape.gradient(D_loss,
@@ -1075,12 +1075,12 @@ def WGAN_GP_train_d_step(generator, discriminator, real_image, alpha, batch_size
     if step % 10 == 0:
         with file_writer.as_default():
             tf.summary.scalar('D_loss', tf.reduce_mean(D_loss), step=step)
-            
+
 #@tf.function
 def WGAN_GP_train_g_step(generator, discriminator, alpha, batch_size, step):
     '''
         One training step
-        
+
         Reference: https://www.tensorflow.org/tutorials/generative/dcgan
     '''
     noise = tf.random.normal([batch_size, NOISE_DIM])
@@ -1135,39 +1135,39 @@ for epoch in range(CURRENT_EPOCH, EPOCHs + 1):
     # Using learning rate decay
 #     current_learning_rate = learning_rate_decay(current_learning_rate)
 #     print('current_learning_rate %f' % (current_learning_rate,))
-#     set_learning_rate(current_learning_rate) 
-    
+#     set_learning_rate(current_learning_rate)
+
     for step, (image) in enumerate(train_data):
         current_batch_size = image.shape[0]
         alpha_tensor = tf.constant(np.repeat(alpha, current_batch_size).reshape(current_batch_size, 1), dtype=tf.float32)
         # Train step
-        
+
         WGAN_GP_train_d_step(generator, discriminator, image, alpha_tensor,
                              batch_size=tf.constant(current_batch_size, dtype=tf.int64), step=tf.constant(step, dtype=tf.int64))
         WGAN_GP_train_g_step(generator, discriminator, alpha_tensor,
                              batch_size=tf.constant(current_batch_size, dtype=tf.int64), step=tf.constant(step, dtype=tf.int64))
-        
-        
+
+
         # update alpha
         alpha = min(1., alpha + alpha_increment)
-        
+
         if step % 10 == 0:
             print ('.', end='')
-    
+
     # Clear jupyter notebook cell output
     clear_output(wait=True)
     # Using a consistent image (sample_X) so that the progress of the model is clearly visible.
     generate_and_save_images(generator, epoch, [sample_noise, sample_alpha], figure_size=(6,6), subplot=(3,3), save=True, is_flatten=False)
-    
+
     if epoch % SAVE_EVERY_N_EPOCH == 0:
         generator.save_weights(os.path.join(MODEL_PATH, '{}x{}_generator.h5'.format(image_size, image_size)))
         discriminator.save_weights(os.path.join(MODEL_PATH, '{}x{}_discriminator.h5'.format(image_size, image_size)))
         print ('Saving model for epoch {}'.format(epoch))
-    
+
     print ('Time taken for epoch {} is {} sec\n'.format(epoch,
                                                       time.time()-start))
-    
-    
+
+
     # Train next resolution
     if epoch % switch_res_every_n_epoch == 0:
         print('saving {} * {} model'.format(image_size, image_size))
@@ -1184,7 +1184,7 @@ for epoch in range(CURRENT_EPOCH, EPOCHs + 1):
         generator, discriminator = model_builder(image_size)
         generator.load_weights(os.path.join(MODEL_PATH, '{}x{}_generator.h5'.format(previous_image_size, previous_image_size)), by_name=True)
         discriminator.load_weights(os.path.join(MODEL_PATH, '{}x{}_discriminator.h5'.format(previous_image_size, previous_image_size)), by_name=True)
-        
+
         print('Making {} * {} dataset'.format(image_size, image_size))
         batch_size = calculate_batch_size(image_size)
         preprocess_function = partial(preprocess_image, target_size=image_size)
