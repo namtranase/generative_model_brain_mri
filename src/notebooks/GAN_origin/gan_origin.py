@@ -17,7 +17,6 @@ import tensorflow as tf
 import os
 import glob
 from tqdm import tqdm
-import random
 
 import numpy as np
 import cv2
