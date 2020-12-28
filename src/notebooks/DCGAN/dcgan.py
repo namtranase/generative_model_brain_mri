@@ -24,7 +24,7 @@ print(tf.__version__)
 
 def generator(z, output_channel_dim, training):
     with tf.compat.v1.variable_scope("generator", reuse= not training):
-        
+
         # 8x8x1024
         fully_connected = tf.compat.v1.layers.dense(z, 8*8*1024)
         fully_connected = tf.reshape(fully_connected, (-1, 8, 8, 1024))
@@ -44,7 +44,7 @@ def generator(z, output_channel_dim, training):
                                                           name="batch_trans_conv1")
         trans_conv1_out = tf.nn.leaky_relu(batch_trans_conv1,
                                            name="trans_conv1_out")
-        
+
         # 16x16x512 -> 32x32x256
         trans_conv2 = tf.compat.v1.layers.conv2d_transpose(inputs=trans_conv1_out,
                                                  filters=256,
@@ -59,7 +59,7 @@ def generator(z, output_channel_dim, training):
                                                           name="batch_trans_conv2")
         trans_conv2_out = tf.nn.leaky_relu(batch_trans_conv2,
                                            name="trans_conv2_out")
-        
+
         # 32x32x256 -> 64x64x128
         trans_conv3 = tf.compat.v1.layers.conv2d_transpose(inputs=trans_conv2_out,
                                                  filters=128,
@@ -74,7 +74,7 @@ def generator(z, output_channel_dim, training):
                                                           name="batch_trans_conv3")
         trans_conv3_out = tf.nn.leaky_relu(batch_trans_conv3,
                                            name="trans_conv3_out")
-        
+
         # 64x64x128 -> 128x128x64
         trans_conv4 = tf.compat.v1.layers.conv2d_transpose(inputs=trans_conv3_out,
                                                  filters=64,
@@ -89,7 +89,7 @@ def generator(z, output_channel_dim, training):
                                                           name="batch_trans_conv4")
         trans_conv4_out = tf.nn.leaky_relu(batch_trans_conv4,
                                            name="trans_conv4_out")
-        
+
         # 128x128x64 -> 128x128x3
         logits = tf.compat.v1.layers.conv2d_transpose(inputs=trans_conv4_out,
                                             filters=3,
@@ -102,9 +102,9 @@ def generator(z, output_channel_dim, training):
         return out
 
 def discriminator(x, reuse):
-    with tf.compat.v1.variable_scope("discriminator", reuse=reuse): 
-        
-        # 128*128*3 -> 64x64x64 
+    with tf.compat.v1.variable_scope("discriminator", reuse=reuse):
+
+        # 128*128*3 -> 64x64x64
         conv1 = tf.compat.v1.layers.conv2d(inputs=x,
                                  filters=64,
                                  kernel_size=[5,5],
@@ -118,8 +118,8 @@ def discriminator(x, reuse):
                                                     name='batch_norm1')
         conv1_out = tf.nn.leaky_relu(batch_norm1,
                                      name="conv1_out")
-        
-        # 64x64x64-> 32x32x128 
+
+        # 64x64x64-> 32x32x128
         conv2 = tf.compat.v1.layers.conv2d(inputs=conv1_out,
                                  filters=128,
                                  kernel_size=[5, 5],
@@ -133,8 +133,8 @@ def discriminator(x, reuse):
                                                     name='batch_norm2')
         conv2_out = tf.nn.leaky_relu(batch_norm2,
                                      name="conv2_out")
-        
-        # 32x32x128 -> 16x16x256  
+
+        # 32x32x128 -> 16x16x256
         conv3 = tf.compat.v1.layers.conv2d(inputs=conv2_out,
                                  filters=256,
                                  kernel_size=[5, 5],
@@ -148,7 +148,7 @@ def discriminator(x, reuse):
                                                     name='batch_norm3')
         conv3_out = tf.nn.leaky_relu(batch_norm3,
                                      name="conv3_out")
-        
+
         # 16x16x256 -> 16x16x512
         conv4 = tf.compat.v1.layers.conv2d(inputs=conv3_out,
                                  filters=512,
@@ -163,7 +163,7 @@ def discriminator(x, reuse):
                                                     name='batch_norm4')
         conv4_out = tf.nn.leaky_relu(batch_norm4,
                                      name="conv4_out")
-        
+
         # 16x16x512 -> 8x8x1024
         conv5 = tf.compat.v1.layers.conv2d(inputs=conv4_out,
                                 filters=1024,
@@ -193,10 +193,9 @@ def model_loss(input_real, input_z, output_channel_dim):
                                                      mean=0.0,
                                                      stddev=random.uniform(0.0, 0.1),
                                                      dtype=tf.float32)
-    
     d_model_real, d_logits_real = discriminator(noisy_input_real, reuse=False)
     d_model_fake, d_logits_fake = discriminator(g_model, reuse=True)
-    
+
     d_loss_real = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_real,
                                                                          labels=tf.ones_like(d_model_real)*random.uniform(0.9, 1.0)))
     d_loss_fake = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake,
@@ -210,10 +209,10 @@ def model_optimizers(d_loss, g_loss):
     t_vars = tf.compat.v1.trainable_variables()
     g_vars = [var for var in t_vars if var.name.startswith("generator")]
     d_vars = [var for var in t_vars if var.name.startswith("discriminator")]
-    
+
     update_ops = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.UPDATE_OPS)
     gen_updates = [op for op in update_ops if op.name.startswith('generator') or op.name.startswith('discriminator')]
-    
+
     with tf.control_dependencies(gen_updates):
         d_train_opt = tf.compat.v1.train.AdamOptimizer(learning_rate=LR_D, beta1=BETA1).minimize(d_loss, var_list=d_vars)
         g_train_opt = tf.compat.v1.train.AdamOptimizer(learning_rate=LR_G, beta1=BETA1).minimize(g_loss, var_list=g_vars)  
@@ -233,7 +232,7 @@ def show_samples(sample_images, name, epoch):
         image_array = sample_images[index]
         axis.imshow(image_array)
         image = Image.fromarray(image_array)
-        image.save(name+"_"+str(epoch)+"_"+str(index)+".png") 
+        image.save(name+"_"+str(epoch)+"_"+str(index)+".png")
     plt.savefig(name+"_"+str(epoch)+".png", bbox_inches='tight', pad_inches=0)
     plt.show()
     plt.close()
@@ -268,7 +267,7 @@ def get_batch(dataset):
             batch.append(np.asarray(im.transpose(Image.FLIP_LEFT_RIGHT)))
         else:
             im = Image.open(file).resize((128,128))
-            batch.append(np.asarray(im))                     
+            batch.append(np.asarray(im))
     batch = np.asarray(batch)
     normalized_batch = (batch / 127.5) - 1.0
     return normalized_batch, files
@@ -277,44 +276,44 @@ def train(data_shape, epoch, checkpoint_path):
     input_images, input_z, lr_G, lr_D = model_inputs(data_shape[1:], NOISE_SIZE)
     d_loss, g_loss = model_loss(input_images, input_z, data_shape[3])
     d_opt, g_opt = model_optimizers(d_loss, g_loss)
-    
+
     with tf.compat.v1.Session() as sess:
         sess.run(tf.compat.v1.global_variables_initializer())
         saver = tf.compat.v1.train.Saver()
         if checkpoint_path is not None:
             saver.restore(sess, checkpoint_path)
-            
+
         iteration = 0
         d_losses = []
         g_losses = []
-        
-        for epoch in range(EPOCH, EPOCHS):        
+
+        for epoch in range(EPOCH, EPOCHS):
             epoch += 1
             epoch_dataset = DATASET.copy()
-            
+
             for i in range(MINIBATCH_SIZE):
                 iteration_start_time = time.time()
                 iteration += 1
                 batch_images, used_files = get_batch(epoch_dataset)
                 [epoch_dataset.remove(file) for file in used_files]
-                
+
                 batch_z = np.random.uniform(-1, 1, size=(BATCH_SIZE, NOISE_SIZE))
                 _ = sess.run(d_opt, feed_dict={input_images: batch_images, input_z: batch_z, lr_D: LR_D})
                 _ = sess.run(g_opt, feed_dict={input_images: batch_images, input_z: batch_z, lr_G: LR_G})
                 d_losses.append(d_loss.eval({input_z: batch_z, input_images: batch_images}))
                 g_losses.append(g_loss.eval({input_z: batch_z}))
-                
+
                 elapsed_time = round(time.time()-iteration_start_time, 3)
                 remaining_files = len(epoch_dataset)
                 print("\rEpoch: " + str(epoch) +
-                      ", iteration: " + str(iteration) + 
+                      ", iteration: " + str(iteration) +
                       ", d_loss: " + str(round(d_losses[-1], 3)) +
                       ", g_loss: " + str(round(g_losses[-1], 3)) +
-                      ", duration: " + str(elapsed_time) + 
+                      ", duration: " + str(elapsed_time) +
                       ", minutes remaining: " + str(round(remaining_files/BATCH_SIZE*elapsed_time/60, 1)) +
                       ", remaining files in batch: " + str(remaining_files)
                       , sep=' ', end=' ', flush=True)
-                
+
             summarize_epoch(epoch, sess, d_losses, g_losses, input_z, data_shape, saver)
 
 # Hyperparameters
@@ -333,7 +332,7 @@ SAMPLES_TO_SHOW = 5
 BASE_PATH = '/content/drive/My Drive/data/data/augmented data/yes'
 OUTPUT_DIR = "/content/drive/MyDrive/data/output"
 DATASET = glob(os.path.join(BASE_PATH, '*.jpg'))
-DATASET_SIZE = len(DATASET) 
+DATASET_SIZE = len(DATASET)
 MINIBATCH_SIZE = DATASET_SIZE // BATCH_SIZE
 
 # Optional - model path to resume training
