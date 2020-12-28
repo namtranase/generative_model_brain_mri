@@ -49,7 +49,7 @@ files = glob.glob(os.path.join(DATA_BASE_DIR, '*.jpg'))
 X = []
 for i in tqdm(range(len(files)), desc="load"):
     image = cv2.imread(files[i])
-    image = cv2.resize(image, (64,64))
+    image = cv2.resize(image, (64, 64))
     image.flatten()
     X.append(image)
 X = [np.random.random((3072*4)) for i in range(len(X))]
@@ -60,7 +60,7 @@ X = np.concatenate([arr[np.newaxis] for arr in X])
 def get_generator():
     generator = Sequential()
     generator.add(Dense(128, input_dim=random_dim,
-                  kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+                        kernel_initializer=initializers.RandomNormal(stddev=0.02)))
     generator.add(LeakyReLU(0.2))
     generator.add(Dense(256))
     generator.add(LeakyReLU(0.2))
@@ -74,7 +74,7 @@ def get_generator():
     generator.add(LeakyReLU(0.2))
     generator.add(Dense(1024*3*4, activation='tanh'))
     generator.compile(loss='binary_crossentropy',
-                      optimizer= Adam(learning_rate=0.00000001, beta_1=0.5))
+                      optimizer = Adam(learning_rate=0.00000001, beta_1=0.5))
 
     return generator
 
@@ -83,7 +83,7 @@ def get_generator():
 def get_discriminator():
     discriminator = Sequential()
     discriminator.add(Dense(1024*4, input_dim=3072*4,
-                      kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+                            kernel_initializer=initializers.RandomNormal(stddev=0.02)))
     discriminator.add(LeakyReLU(0.2))
     discriminator.add(Dropout(0.3))
     discriminator.add(Dense(512*4))
@@ -103,7 +103,7 @@ def get_discriminator():
     discriminator.add(Dropout(0.3))
     discriminator.add(Dense(1, activation='sigmoid'))
     discriminator.compile(loss='binary_crossentropy',
-                          optimizer=Adam(learning_rate=0.00000001 ,beta_1=0.5))
+                          optimizer=Adam(learning_rate=0.00000001, beta_1=0.5))
 
     return discriminator
 
@@ -119,8 +119,8 @@ def get_gan_network(discriminator, random_dim, generator):
     gan_output = discriminator(x)
     gan = Model(inputs=gan_input, outputs=gan_output)
     gan.compile(loss='binary_crossentropy',
-                optimizer=Adam( learning_rate=0.00000001,
-                beta_1=0.5 ))
+                optimizer=Adam(learning_rate=0.00000001,
+                               beta_1=0.5))
 
     return gan
 
@@ -138,9 +138,9 @@ def plot_generated_images(epoch, generator, examples=100,
     plt.tight_layout()
     plt.savefig('/content/drive/MyDrive/data/data/augmented data/output_gan/gan_generated_image_epoch_%d.png' % epoch)
 
-def plot_graph(d_losses,g_losses,epoch):
+def plot_graph(d_losses, g_losses,epoch):
     plt.figure(figsize=(10,8))
-    plt.plot(d_losses,label='D loss')
+    plt.plot(d_losses, label='D loss')
     plt.plot(g_losses, label='G loss')
     plt.title('Loss Graph Generator loss vs Discriminator loss')
     plt.xlabel('Epoch')
@@ -155,7 +155,7 @@ def saveModels(generator, discriminator, epoch):
 d_losses = []
 g_losses = []
 
-def train (dataset,epochs=100 , batch_size=128):
+def train (dataset, epochs=100, batch_size=128):
     # Split the training data into batches of size 128
     #files = glob.glob(os.path.join(data_path, '*.jpg'))
     x_train = dataset[:2000]
@@ -189,14 +189,14 @@ def train (dataset,epochs=100 , batch_size=128):
             y_gen = np.ones(batch_size)
             discriminator.trainable = False
             gloss = gan.train_on_batch(noise, y_gen)
-            print([dloss,gloss])
+            print([dloss, gloss])
             d_losses.append(dloss)
             g_losses.append(gloss)
 
         if e == 1 or e % 50 == 0:
             plot_generated_images(e, generator)
             plot_graph(d_losses, g_losses,e)
-            saveModels(generator,discriminator,e)
+            saveModels(generator, discriminator, e)
 
 if __name__ == '__main__':
     train(X,500, 128)
