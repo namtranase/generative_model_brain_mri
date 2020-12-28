@@ -75,6 +75,7 @@ def get_generator():
     generator.add(Dense(1024*3*4, activation='tanh'))
     generator.compile(loss='binary_crossentropy',
                       optimizer= Adam(learning_rate=0.00000001, beta_1=0.5))
+
     return generator
 
 # Discriminator
@@ -101,7 +102,9 @@ def get_discriminator():
     discriminator.add(LeakyReLU(0.2))
     discriminator.add(Dropout(0.3))
     discriminator.add(Dense(1, activation='sigmoid'))
-    discriminator.compile(loss='binary_crossentropy', optimizer=Adam( learning_rate=0.00000001 , beta_1=0.5 ))
+    discriminator.compile(loss='binary_crossentropy',
+                          optimizer=Adam(learning_rate=0.00000001 ,beta_1=0.5))
+
     return discriminator
 
 def get_gan_network(discriminator, random_dim, generator):
@@ -115,10 +118,14 @@ def get_gan_network(discriminator, random_dim, generator):
     # get the output of the discriminator (probability if the image is real or not)
     gan_output = discriminator(x)
     gan = Model(inputs=gan_input, outputs=gan_output)
-    gan.compile(loss='binary_crossentropy', optimizer=Adam( learning_rate=0.00000001 , beta_1=0.5 ))
+    gan.compile(loss='binary_crossentropy',
+                optimizer=Adam( learning_rate=0.00000001,
+                beta_1=0.5 ))
+
     return gan
 
-def plot_generated_images(epoch, generator, examples=100, dim=(50, 50), figsize=(100, 100)):
+def plot_generated_images(epoch, generator, examples=100,
+                          dim=(50, 50), figsize=(100, 100)):
     noise = np.random.normal(0, 1, size=[examples, random_dim])
     generated_images = generator.predict(noise)
     generated_images = generated_images.reshape(examples, 64, 64, 3)
@@ -132,14 +139,14 @@ def plot_generated_images(epoch, generator, examples=100, dim=(50, 50), figsize=
     plt.savefig('/content/drive/MyDrive/data/data/augmented data/output_gan/gan_generated_image_epoch_%d.png' % epoch)
 
 def plot_graph(d_losses,g_losses,epoch):
-  plt.figure(figsize=(10,8))
-  plt.plot(d_losses,label='D loss')
-  plt.plot(g_losses, label='G loss')
-  plt.title('Loss Graph Generator loss vs Discriminator loss')
-  plt.xlabel('Epoch')
-  plt.ylabel('Loss')
-  plt.legend()
-  plt.savefig('/content/drive/MyDrive/data/data/augmented data/graph/gan_loss_%d.png' % epoch)
+    plt.figure(figsize=(10,8))
+    plt.plot(d_losses,label='D loss')
+    plt.plot(g_losses, label='G loss')
+    plt.title('Loss Graph Generator loss vs Discriminator loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.savefig('/content/drive/MyDrive/data/data/augmented data/graph/gan_loss_%d.png' % epoch)
 
 def saveModels(generator, discriminator, epoch):
     generator.save('/content/drive/MyDrive/data/data/augmented data/model_gan_t1/gan_generator_epoch_%d.h5' % epoch)
@@ -196,4 +203,4 @@ if __name__ == '__main__':
 
 generator = load_model('/content/drive/MyDrive/data/data/augmented data/model_gan_t1/gan_generator_epoch_1000.h5')
 
-plot_generated_images(5,generator)
+plot_generated_images(5, generator)
