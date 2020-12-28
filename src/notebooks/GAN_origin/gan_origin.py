@@ -10,21 +10,21 @@ Original file is located at
 from google.colab import drive
 drive.mount('/content/drive')
 
-"""#1.Library"""
+# 1.Library
 
 import tensorflow as tf
 
 import os
 import glob
-import numpy as np
 from tqdm import tqdm
+import random
 
+import numpy as np
 import cv2
 from skimage import io
 from PIL import Image
 import pickle as pkl
 import scipy.misc
-import random
 
 from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model, Sequential
@@ -35,10 +35,9 @@ from tensorflow.keras import initializers
 from tensorflow.keras.models import load_model
 from tensorflow.keras import backend
 
-import cv2
 import matplotlib.pyplot as plt
 
-"""#2.Data preprocessing"""
+# 2.Data preprocessing
 
 DATA_BASE_DIR = '/content/drive/MyDrive/data/data/augmented data/yes'
 image_size = 64
@@ -46,23 +45,22 @@ random_dim = 100
 
 files = glob.glob(os.path.join(DATA_BASE_DIR, '*.jpg'))
 
-#load data from data_base_dir
+# Load data from data_base_dir
 X = []
-for i in tqdm(range(len(files)),desc="load"):
-  image = cv2.imread(files[i])
-  image = cv2.resize(image,(64,64))
-  image.flatten()
-  X.append(image)        
-X = [np.random.random((3072*4))
-        for i in range(len(X))]
+for i in tqdm(range(len(files)), desc="load"):
+    image = cv2.imread(files[i])
+    image = cv2.resize(image, (64,64))
+    image.flatten()
+    X.append(image)
+X = [np.random.random((3072*4)) for i in range(len(X))]
 X = np.concatenate([arr[np.newaxis] for arr in X])
-X.shape
 
-"""#2.Generator"""
+# Generator
 
 def get_generator():
     generator = Sequential()
-    generator.add(Dense(128, input_dim=random_dim, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+    generator.add(Dense(128, input_dim=random_dim,
+                  kernel_initializer=initializers.RandomNormal(stddev=0.02)))
     generator.add(LeakyReLU(0.2))
     generator.add(Dense(256))
     generator.add(LeakyReLU(0.2))
@@ -75,14 +73,16 @@ def get_generator():
     generator.add(Dense(1024*4))
     generator.add(LeakyReLU(0.2))
     generator.add(Dense(1024*3*4, activation='tanh'))
-    generator.compile(loss='binary_crossentropy', optimizer= Adam( learning_rate=0.00000001, beta_1=0.5 ))
+    generator.compile(loss='binary_crossentropy',
+                      optimizer= Adam(learning_rate=0.00000001, beta_1=0.5))
     return generator
 
-"""#3.Discriminator"""
+# Discriminator
 
 def get_discriminator():
     discriminator = Sequential()
-    discriminator.add(Dense(1024*4, input_dim=3072*4, kernel_initializer=initializers.RandomNormal(stddev=0.02)))
+    discriminator.add(Dense(1024*4, input_dim=3072*4,
+                      kernel_initializer=initializers.RandomNormal(stddev=0.02)))
     discriminator.add(LeakyReLU(0.2))
     discriminator.add(Dropout(0.3))
     discriminator.add(Dense(512*4))
@@ -100,8 +100,8 @@ def get_discriminator():
     discriminator.add(Dense(128))
     discriminator.add(LeakyReLU(0.2))
     discriminator.add(Dropout(0.3))
-    discriminator.add(Dense( 1 , activation='sigmoid'))
-    discriminator.compile( loss='binary_crossentropy' , optimizer=Adam( learning_rate=0.00000001 , beta_1=0.5 ))
+    discriminator.add(Dense(1, activation='sigmoid'))
+    discriminator.compile(loss='binary_crossentropy', optimizer=Adam( learning_rate=0.00000001 , beta_1=0.5 ))
     return discriminator
 
 def get_gan_network(discriminator, random_dim, generator):
