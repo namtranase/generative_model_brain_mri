@@ -136,10 +136,9 @@ class PixelNormalization(Layer):
     """
     return input_shape
 
-"""# Support functions
+# Support functions
 
-## Calculate wloss
-"""
+# Calculate wloss
 
 def wassertein_loss(ytrue,ypred):
   """TODO: Xem lai
@@ -207,7 +206,7 @@ def add_D_block(old_model, n_input_layer=3):
 
   return [model1, model2]
 
-"""## Grow Gennerator block"""
+# Grow Gennerator block
 
 def add_G_block(old_model):
   # init weight
@@ -235,10 +234,7 @@ def add_G_block(old_model):
 
   return [model1, model2]
 
-"""# Models
-
-## Discriminator
-"""
+# Discriminator
 
 def discriminator(blocks, input_shape=(4,4,3)):
   init = RandomNormal(stddev=0.02)
@@ -275,7 +271,7 @@ def discriminator(blocks, input_shape=(4,4,3)):
     model_list.append(models)
   return model_list
 
-"""## Genenrator"""
+# Genenrator
 
 def generator(latent_dim, blocks, in_dim=4):
   """
@@ -314,10 +310,7 @@ def generator(latent_dim, blocks, in_dim=4):
 
   return model_list
 
-"""# Pretraining
-
-## Premodels
-"""
+# Premodels
 
 def Composite(D_model, G_model):
   """
@@ -341,7 +334,7 @@ def Composite(D_model, G_model):
 
   return model_list
 
-"""## Preinput"""
+# Preinput
 
 def load_data_image(img_path):
   X = list()
@@ -424,7 +417,7 @@ def summarize_performance(status, g_model, latent_dim, n_samples=25):
 	g_model.save(filename2)
 	print('>Saved: %s and %s' % (filename1, filename2))
 
-"""# Training"""
+# Training
 
 def train_epochs(g_model,d_model,gan_model,dataset,n_epochs,n_batchs,fadein = False):
   # the number of batchs per training epoch
@@ -484,11 +477,10 @@ n_batch = [16, 16, 16, 8, 4, 4]
 n_epochs = [5, 8, 8, 10, 10, 10]
 train(g_models,d_models,gan_models,dataset,latent_dim,n_epoch,n_epochs,n_batch)
 
-##model = tf.keras.models.load_model('model.h5')
-#latent_dim=100
-#n_images = 10
-#input = generate_x_input(latent_dim,n_images)
-#X = model.predict(input)
-
-"""# Validating"""
+# Test model
+model = tf.keras.models.load_model('model.h5')
+latent_dim=100
+n_images = 10
+input = generate_x_input(latent_dim,n_images)
+X = model.predict(input)
 
