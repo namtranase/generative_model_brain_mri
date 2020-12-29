@@ -1,5 +1,6 @@
 # generative_model_brain_mri
-Updating...
+Using 3 types of GAN for generate MRI Brain images.
+Including: DCGAN, normal_GAN and PGGAN.
 
 ## Quick Start
 
