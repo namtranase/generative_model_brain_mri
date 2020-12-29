@@ -10,8 +10,6 @@ Original file is located at
 from google.colab import drive
 drive.mount('/content/drive/')
 
-"""# Libraries"""
-
 import os
 import glob
 
@@ -45,10 +43,9 @@ from PIL import Image
 import cv2
 from matplotlib import pyplot
 
-"""# Support classes
+# Support classes
 
-## Fade Block class
-"""
+# Fade Block class
 
 # use for fade newblock
 class FadeBlock(Add):
@@ -66,9 +63,7 @@ class FadeBlock(Add):
 
     return ((1.0 - self.alpha) * inputs[0]) + (self.alpha * inputs[1])
 
-"""## Minibatch Stev class
-
-"""
+## Minibatch Stev class
 
 class Minibatchstev(Layer):
   """"To:
@@ -109,7 +104,7 @@ class Minibatchstev(Layer):
     input_shape[-1]+=1
     return tuple(input_shape)
 
-"""## Pixel Normalization class"""
+# Pixel Normalization class
 
 class PixelNormalization(Layer):
   """To:
